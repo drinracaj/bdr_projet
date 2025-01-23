@@ -50,7 +50,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
   setup();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+  db::close();
+}
 
 void MainWindow::setup() {
   // Set window title and size

@@ -76,9 +76,7 @@ Datamanager::Datamanager(QWidget* parent) : QMainWindow(parent) {
   resize(WIN_WIDTH_, WIN_HEIGHT_);
 }
 
-Datamanager::~Datamanager() {
-  db::close();
-}
+Datamanager::~Datamanager() {}
 
 void Datamanager::prep_qtable(const QString& model_str) {
   add_menu_->setEnabled(true);
