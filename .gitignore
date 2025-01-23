@@ -1,0 +1,17 @@
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# CLion
+.idea/
+cmake-build-*/
+
+# Build directories
+/build/
+*/build/
+
+# CMake
+CMakeLists.txt.user
