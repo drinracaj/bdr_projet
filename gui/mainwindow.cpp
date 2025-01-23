@@ -137,22 +137,22 @@ void MainWindow::on_apply_btn_clicked() {
     table_widget_->setItem(table_widget_->rowCount(), 0,
                            new QTableWidgetItem(QString::number(fee->occ_id)));
     table_widget_->setItem(
-        table_widget_->rowCount(), 1,
+        table_widget_->rowCount() - 1, 1,
         new QTableWidgetItem(QString::number(fee->volume, 'f', 2)));
     table_widget_->setItem(
-        table_widget_->rowCount(), 2,
+        table_widget_->rowCount() - 1, 2,
         new QTableWidgetItem(QString::number(fee->heat_coefficient, 'f', 2)));
     table_widget_->setItem(
-        table_widget_->rowCount(), 3,
+        table_widget_->rowCount() - 1, 3,
         new QTableWidgetItem(QString::number(fee->nb_month)));
     table_widget_->setItem(
-        table_widget_->rowCount(), 4,
+        table_widget_->rowCount() - 1, 4,
         new QTableWidgetItem(QString::number(fee->heat_fee, 'f', 2)));
     table_widget_->setItem(
-        table_widget_->rowCount(), 5,
+        table_widget_->rowCount() - 1, 5,
         new QTableWidgetItem(QString::number(fee->water_fee, 'f', 2)));
     table_widget_->setItem(
-        table_widget_->rowCount(), 6,
+        table_widget_->rowCount() - 1, 6,
         new QTableWidgetItem(QString::number(fee->misc_fee, 'f', 2)));
   }
 }

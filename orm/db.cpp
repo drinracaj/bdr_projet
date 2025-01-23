@@ -40,11 +40,11 @@ bool db::init() {
 
   try {
     std::string co =
-        "dbname=rjmmo "
-        "user=rjmmo_user "
-        "password=root "
+        "dbname=nombd "
+        "user=postgres "
+        "password=trustno1 "
         "host=localhost "
-        "port=5432";
+        "port=5666";
     //if the .db file does not exist sqlite3 will create it
     session.open(soci::postgresql, co);
     //    session << "PRAGMA foreign_keys = ON;";
