@@ -2,10 +2,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-if (WIN32)
-    set(Qt6_DIR "C:/Qt/6.7.3/msvc2022_64/lib/cmake/Qt6")
-endif ()
-
 find_package(Qt6 COMPONENTS
         Core
         Gui

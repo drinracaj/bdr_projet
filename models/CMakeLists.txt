@@ -15,6 +15,7 @@ set(MODELS_SRC
         feetype.cpp
         invoice.cpp
         heatmonthlycoef.cpp
+        waterprice.cpp
 )
 
 add_library(models STATIC ${MODELS_SRC})

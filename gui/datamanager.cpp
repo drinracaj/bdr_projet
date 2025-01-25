@@ -21,6 +21,7 @@
 #include "watermeasurement.h"
 #include "watermeter.h"
 #include "watermeterflat.h"
+#include "waterprice.h"
 
 #include <QAction>
 #include <QApplication>
@@ -46,6 +47,7 @@ Datamanager::Datamanager(QWidget* parent) : QMainWindow(parent) {
   nav_list->addItem("WaterMeter");
   nav_list->addItem("WaterMeterFlat");
   nav_list->addItem("WaterMeasurement");
+  nav_list->addItem("WaterPrice");
   nav_list->addItem("Company");
   nav_list->addItem("RoomType");
   nav_list->addItem("RoomTypeFlat");
@@ -110,6 +112,9 @@ void Datamanager::prep_qtable(const QString& model_str) {
   }
   if (model_str == "WaterMeasurement") {
     return load_qtable<WaterMeasurement>();
+  }
+  if (model_str == "WaterPrice") {
+    return load_qtable<WaterPrice>();
   }
   if (model_str == "Company") {
     return load_qtable<Company>();

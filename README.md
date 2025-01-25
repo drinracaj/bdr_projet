@@ -8,8 +8,12 @@
 - cmake
 - compilateur c++ avec c++20
 - make
-- libpq (library cliente de postgresql)
+- libpq (client library de postgres)
 - qt6
+
+
+# Windows
+- ajouter <Chemin d'installation>\PostgreSQL\17\bin au PATH
 
 # step pour setup
 - clone l'app

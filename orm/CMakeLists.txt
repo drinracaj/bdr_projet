@@ -14,8 +14,6 @@ target_include_directories(orm PUBLIC
         ${PostgreSQL_INCLUDE_DIRS})
 
 target_link_libraries(orm PUBLIC
-        Soci::sqlite3_static
         Soci::postgresql_static
         Soci::core_static
-        sqlite3
         PostgreSQL::PostgreSQL)

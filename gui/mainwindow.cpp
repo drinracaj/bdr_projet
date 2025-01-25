@@ -7,22 +7,7 @@
 #include "datamanager.h"
 
 #include "building.h"
-#include "company.h"
-#include "feetype.h"
-#include "flat.h"
-#include "heatmonthlycoef.h"
-#include "invoice.h"
 #include "miscrequest.h"
-#include "occtenant.h"
-#include "occupancy.h"
-#include "payment.h"
-#include "paymenttype.h"
-#include "roomtype.h"
-#include "roomtypeflat.h"
-#include "tenant.h"
-#include "watermeasurement.h"
-#include "watermeter.h"
-#include "watermeterflat.h"
 
 #include <QComboBox>
 #include <QLabel>
@@ -33,17 +18,7 @@
 #include <QWidget>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-  if (!db::init() || !db::create_sql_table<Building>() ||
-      !db::create_sql_table<Flat>() || !db::create_sql_table<Occupancy>() ||
-      !db::create_sql_table<Tenant>() || !db::create_sql_table<Occupancy_Tenant>() ||
-      !db::create_sql_table<PaymentType>() ||
-      !db::create_sql_table<Payment>() || !db::create_sql_table<WaterMeter>() ||
-      !db::create_sql_table<Flat_WaterMeter>() ||
-      !db::create_sql_table<WaterMeasurement>() ||
-      !db::create_sql_table<Company>() || !db::create_sql_table<RoomType>() ||
-      !db::create_sql_table<RoomType_Flat>() ||
-      !db::create_sql_table<FeeType>() || !db::create_sql_table<Invoice>() ||
-      !db::create_sql_table<HeatMonthlyCoefficient>()) {
+  if (!db::init()) {
     alert_err("Failed to initialize the program.");
     return;
   }
@@ -55,7 +30,6 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setup() {
-  // Set window title and size
   setWindowTitle("Proj BDR");
   resize(800, 600);
 

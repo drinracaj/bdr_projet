@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS Flat_WaterMeter (
     idWaterMeter INTEGER NOT NULL,
     idFlat INTEGER NOT NULL,
     CONSTRAINT Flat_WaterMeter_idWaterMeter FOREIGN KEY(idWaterMeter) REFERENCES WaterMeter(id) ON DELETE CASCADE,
-    CONSTRAINT Flat_WaterMeter_idFlat FOREIGN KEY(idFlat) REFERENCES Flat(id) ON DELETE CASCADE
+    CONSTRAINT Flat_WaterMeter_idFlat FOREIGN KEY(idFlat) REFERENCES Flat(id) ON DELETE CASCADE,
+    CONSTRAINT UC_Flat_WaterMeter_idWaterMeter_idFlat UNIQUE (idWaterMeter, idFlat)
 );
 
 CREATE TABLE IF NOT EXISTS WaterMeasurement(
@@ -50,8 +51,17 @@ CREATE TABLE IF NOT EXISTS WaterMeasurement(
     year INTEGER NOT NULL,
     measure REAL NOT NULL,
     CONSTRAINT WaterMeasurement_idWaterMeter FOREIGN KEY(idWaterMeter) REFERENCES WaterMeter(id) ON DELETE CASCADE,
-    CONSTRAINT CK_WaterMeasurement_year CHECK (year <= EXTRACT(YEAR FROM CURRENT_DATE)),
+    CONSTRAINT CK_WaterMeasurement_year CHECK (year < EXTRACT(YEAR FROM CURRENT_DATE)),
     CONSTRAINT CK_WaterMeasurement_measure CHECK (measure >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS WaterPrice(
+    id serial PRIMARY KEY,
+    year INTEGER NOT NULL,
+    price REAL NOT NULL,
+    CONSTRAINT CK_WaterPrice_year CHECK (year < EXTRACT(YEAR FROM CURRENT_DATE)),
+    CONSTRAINT CK_WaterPrice_price CHECK (price >= 0),
+    CONSTRAINT UC_WaterPrice_year UNIQUE (year)
 );
 
 CREATE TABLE IF NOT EXISTS Occupancy(
@@ -92,6 +102,7 @@ CREATE TABLE IF NOT EXISTS Tenant(
     email VARCHAR(320) NOT NULL,
     tel VARCHAR(11) NOT NULL,
     CONSTRAINT UC_Tenant_email UNIQUE (email)
+    CONSTRAINT UC_Tenant_tel UNIQUE (tel)
 );
 
 CREATE TABLE IF NOT EXISTS Occupancy_Tenant(
@@ -99,16 +110,15 @@ CREATE TABLE IF NOT EXISTS Occupancy_Tenant(
     idTenant INTEGER NOT NULL,
     idOccupancy INTEGER NOT NULL,
     CONSTRAINT Occupancy_Tenant_idTenant FOREIGN KEY(idTenant) REFERENCES Tenant(id) ON DELETE CASCADE,
-    CONSTRAINT Occupancy_Tenant_idOccupancy FOREIGN KEY(idOccupancy) REFERENCES Occupancy(id) ON DELETE CASCADE
+    CONSTRAINT Occupancy_Tenant_idOccupancy FOREIGN KEY(idOccupancy) REFERENCES Occupancy(id) ON DELETE CASCADE,
+    CONSTRAINT UC_Occupancy_Tenant_idTenant_idOccupancy UNIQUE (idTenant, idOccupancy)
 );
 
 CREATE TABLE IF NOT EXISTS Company(
     id serial PRIMARY KEY,
     name VARCHAR(35) NOT NULL,
     email VARCHAR(320),
-    tel VARCHAR(11),
-    CONSTRAINT UC_Company_email UNIQUE (email),
-    CONSTRAINT UC_Company_tel UNIQUE (tel)
+    tel VARCHAR(11)
 );
 
 CREATE TABLE IF NOT EXISTS FeeType(
@@ -196,12 +206,17 @@ INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (4, 3, 40);
 
 -- WaterMeter
 INSERT INTO WaterMeter (no) VALUES ('A123');
+INSERT INTO WaterMeter (no) VALUES ('A456');
 
 -- Flat_WaterMeter
 INSERT INTO Flat_WaterMeter (idWaterMeter, idFlat) VALUES (1, 1);
+INSERT INTO Flat_WaterMeter (idWaterMeter, idFlat) VALUES (1, 2);
+INSERT INTO Flat_WaterMeter (idWaterMeter, idFlat) VALUES (1, 3);
+INSERT INTO Flat_WaterMeter (idWaterMeter, idFlat) VALUES (2, 3);
 
 -- WaterMeasurement
-INSERT INTO WaterMeasurement (idWaterMeter, year, measure) VALUES (1, 2020, 100);
+INSERT INTO WaterMeasurement (idWaterMeter, year, measure) VALUES (1, 2023, 911);
+INSERT INTO WaterMeasurement (idWaterMeter, year, measure) VALUES (2, 2023, 50);
 
 -- Occupancy
 INSERT INTO Occupancy (idFlat, startDate, endDate, rent, fees, ddm)
@@ -303,3 +318,5 @@ INSERT INTO HeatMonthlyCoefficient (month, coefficient) VALUES
 (10, 8.00),
 (11, 13.00),
 (12, 18.00);
+
+INSERT INTO WaterPrice (year, price) VALUES (2023,3.50);

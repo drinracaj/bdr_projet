@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (WIN32)
     set(PostgreSQL_ROOT "C:/PostgreSQL/17")
+    set(Qt6_DIR "C:/Qt/6.7.3/msvc2022_64/lib/cmake/Qt6")
 endif ()
-
 
 add_subdirectory(lib)
 add_subdirectory(orm)

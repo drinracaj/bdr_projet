@@ -1,7 +1,6 @@
 //
 // Created by drin on 21/01/2025.
 //
-
 #include "watermeasurement.h"
 const Table<WaterMeasurement>& WaterMeasurement::table() {
   static const Table<WaterMeasurement> table = {
