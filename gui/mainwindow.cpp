@@ -56,24 +56,21 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setup() {
   // Set window title and size
-  setWindowTitle("TabWidget Example");
+  setWindowTitle("Proj BDR");
   resize(800, 600);
 
   menu_ = menuBar()->addAction("DataManager");
   connect(menu_, &QAction::triggered, this, &MainWindow::on_menu_clicked);
 
-  // Create central widget and layout
   QWidget* central_widget = new QWidget(this);
   QVBoxLayout* layout = new QVBoxLayout(central_widget);
 
-  // Create and setup TabWidget
   tab_widget_ = new QTabWidget(this);
   layout->addWidget(tab_widget_);
 
-  // Create the tabs
   create_tabs();
+  create_payment_tab();
 
-  // Set central widget
   setCentralWidget(central_widget);
 }
 
@@ -88,12 +85,12 @@ void MainWindow::create_tabs() {
   }
 
   QLabel* building_label = new QLabel("Building", tab);
-  building_cb_ = new QComboBox(tab);
+  building_cb_fee_ = new QComboBox(tab);
   for (const auto& b : b_list.value()) {
-    building_cb_->addItem(b.second.data(), b.first);
+    building_cb_fee_->addItem(b.second.data(), b.first);
   }
   tab_layout->addWidget(building_label);
-  tab_layout->addWidget(building_cb_);
+  tab_layout->addWidget(building_cb_fee_);
 
   QLabel* year_label = new QLabel("Year:", tab);
   year_picker_ = new QSpinBox(tab);
@@ -128,7 +125,7 @@ void MainWindow::on_menu_clicked() {
 
 void MainWindow::on_apply_btn_clicked() {
   int year = year_picker_->value();
-  int building_id = building_cb_->currentData().toInt();
+  int building_id = building_cb_fee_->currentData().toInt();
   auto fees = MiscRequest::get_all_fees(building_id, year);
   if (!fees.has_value()) {
     alert_err("An error occured while fetching the fees.");
@@ -136,7 +133,7 @@ void MainWindow::on_apply_btn_clicked() {
   table_widget_->setRowCount(0);
   for (const auto& fee : fees.value()) {
     table_widget_->insertRow(table_widget_->rowCount());
-    table_widget_->setItem(table_widget_->rowCount(), 0,
+    table_widget_->setItem(table_widget_->rowCount() - 1, 0,
                            new QTableWidgetItem(QString::number(fee->occ_id)));
     table_widget_->setItem(
         table_widget_->rowCount() - 1, 1,
@@ -156,5 +153,74 @@ void MainWindow::on_apply_btn_clicked() {
     table_widget_->setItem(
         table_widget_->rowCount() - 1, 6,
         new QTableWidgetItem(QString::number(fee->misc_fee, 'f', 2)));
+  }
+}
+
+void MainWindow::create_payment_tab() {
+  QWidget* tab = new QWidget();
+  QVBoxLayout* tab_layout = new QVBoxLayout(tab);
+
+  auto o_list = MiscRequest::get_all_occ();
+
+  QLabel* occ_label = new QLabel("Occupancy", tab);
+  occ_cb_pay_ = new QComboBox(tab);
+  for (const auto& o : o_list.value()) {
+    occ_cb_pay_->addItem(o.second.data(), o.first);
+  }
+  tab_layout->addWidget(occ_label);
+  tab_layout->addWidget(occ_cb_pay_);
+
+  QPushButton* apply_btn_pay = new QPushButton("Apply", tab);
+  connect(apply_btn_pay, &QPushButton::clicked, this,
+          &MainWindow::on_payment_apply_clicked);
+  tab_layout->addWidget(apply_btn_pay);
+
+  payment_table_ = new QTableWidget(tab);
+  payment_table_->setColumnCount(8);
+  payment_table_->setRowCount(0);
+  QStringList headers = {"Occupancy", "Start date", "Rent",   "Fees",
+                         "Ddm",       "Pay. date",  "Amount", "Type"};
+  payment_table_->setHorizontalHeaderLabels(headers);
+  tab_layout->addWidget(payment_table_);
+
+  tab_widget_->addTab(tab, "Payments");
+}
+
+void MainWindow::on_payment_apply_clicked() {
+  int occ_id = occ_cb_pay_->currentData().toInt();
+
+  auto payments = MiscRequest::get_all_pay(occ_id);
+  if (!payments.has_value()) {
+    alert_err("An error occurred while fetching the payments.");
+    return;
+  }
+
+  payment_table_->setRowCount(0);
+  for (const auto& payment : payments.value()) {
+    payment_table_->insertRow(payment_table_->rowCount());
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 0,
+        new QTableWidgetItem(QString::number(payment->occ_id)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 1,
+        new QTableWidgetItem(QString::fromStdString(payment->start_date)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 2,
+        new QTableWidgetItem(QString::number(payment->rent)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 3,
+        new QTableWidgetItem(QString::number(payment->fees)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 4,
+        new QTableWidgetItem(QString::number(payment->ddm)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 5,
+        new QTableWidgetItem(QString::fromStdString(payment->date)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 6,
+        new QTableWidgetItem(QString::number(payment->amount)));
+    payment_table_->setItem(
+        payment_table_->rowCount() - 1, 7,
+        new QTableWidgetItem(QString::fromStdString(payment->payment_type)));
   }
 }

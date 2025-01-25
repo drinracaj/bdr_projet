@@ -22,10 +22,14 @@ class MainWindow : public QMainWindow {
   QTabWidget* tab_widget_;
   QAction* menu_;
   QTableWidget* table_widget_;
-  QComboBox* building_cb_;
+  QComboBox* building_cb_fee_;
+  QComboBox* occ_cb_pay_;
   QSpinBox* year_picker_;
+  QTableWidget* payment_table_;
   void setup();
   void create_tabs();
+  void create_payment_tab();
+  void on_payment_apply_clicked();
 };
 
 #endif  // MAINWINDOW_H
