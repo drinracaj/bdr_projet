@@ -16,7 +16,7 @@ const Table<WaterMeter>& WaterMeter::table() {
 }
 
 const std::string WaterMeter::sql_req_sel_all =
-    "SELECT WaterMeter.* FROM WaterMeter";
+    "SELECT * FROM WaterMeter";
 
 const std::string WaterMeter::sql_req_sel_all_as_str =
-    "SELECT WaterMeter.id, WaterMeter.no AS as_str FROM WaterMeter";
+    "SELECT id, no AS as_str FROM WaterMeter";

@@ -94,7 +94,7 @@ void Datamanager::prep_qtable(const QString& model_str) {
     return load_qtable<Tenant>();
   }
   if (model_str == "OccTenant") {
-    return load_qtable<OccTenant>();
+    return load_qtable<Occupancy_Tenant>();
   }
   if (model_str == "PaymentType") {
     return load_qtable<PaymentType>();
@@ -106,7 +106,7 @@ void Datamanager::prep_qtable(const QString& model_str) {
     return load_qtable<WaterMeter>();
   }
   if (model_str == "WaterMeterFlat") {
-    return load_qtable<WaterMeterFlat>();
+    return load_qtable<Flat_WaterMeter>();
   }
   if (model_str == "WaterMeasurement") {
     return load_qtable<WaterMeasurement>();
@@ -118,7 +118,7 @@ void Datamanager::prep_qtable(const QString& model_str) {
     return load_qtable<RoomType>();
   }
   if (model_str == "RoomTypeFlat") {
-    return load_qtable<RoomTypeFlat>();
+    return load_qtable<RoomType_Flat>();
   }
   if (model_str == "FeeType") {
     return load_qtable<FeeType>();

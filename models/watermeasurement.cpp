@@ -26,16 +26,16 @@ const Table<WaterMeasurement>& WaterMeasurement::table() {
            [](WaterMeasurement& wm, FieldSetter val) -> void {
              wm.water_meter(std::move(std::get<ForeignKey>(val)));
            },
-           "watermeter_id", "Water Meter", ColumnType::FK, OnDelete::CASCADE,
+           "idwatermeter", "Water Meter", ColumnType::FK, OnDelete::CASCADE,
            typeid(WaterMeter))}};
   return table;
 }
 
 const std::string WaterMeasurement::sql_req_sel_all =
     "SELECT WaterMeasurement.*, WaterMeter.no AS "
-    "watermeter_id" +
+    "idWaterMeter" +
     FK_SUFFIX +
-    " FROM WaterMeasurement INNER JOIN WaterMeter ON WaterMeter.id = "
-    "WaterMeasurement.watermeter_id";
+    " FROM WaterMeasurement "
+    "INNER JOIN WaterMeter ON WaterMeter.id = WaterMeasurement.idWaterMeter";
 
 const std::string WaterMeasurement::sql_req_sel_all_as_str;

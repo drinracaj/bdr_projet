@@ -35,13 +35,13 @@
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
   if (!db::init() || !db::create_sql_table<Building>() ||
       !db::create_sql_table<Flat>() || !db::create_sql_table<Occupancy>() ||
-      !db::create_sql_table<Tenant>() || !db::create_sql_table<OccTenant>() ||
+      !db::create_sql_table<Tenant>() || !db::create_sql_table<Occupancy_Tenant>() ||
       !db::create_sql_table<PaymentType>() ||
       !db::create_sql_table<Payment>() || !db::create_sql_table<WaterMeter>() ||
-      !db::create_sql_table<WaterMeterFlat>() ||
+      !db::create_sql_table<Flat_WaterMeter>() ||
       !db::create_sql_table<WaterMeasurement>() ||
       !db::create_sql_table<Company>() || !db::create_sql_table<RoomType>() ||
-      !db::create_sql_table<RoomTypeFlat>() ||
+      !db::create_sql_table<RoomType_Flat>() ||
       !db::create_sql_table<FeeType>() || !db::create_sql_table<Invoice>() ||
       !db::create_sql_table<HeatMonthlyCoefficient>()) {
     alert_err("Failed to initialize the program.");
@@ -206,10 +206,10 @@ void MainWindow::on_payment_apply_clicked() {
         new QTableWidgetItem(QString::fromStdString(payment->start_date)));
     payment_table_->setItem(
         payment_table_->rowCount() - 1, 2,
-        new QTableWidgetItem(QString::number(payment->rent)));
+        new QTableWidgetItem(QString::number(payment->rent, 'f', 2)));
     payment_table_->setItem(
         payment_table_->rowCount() - 1, 3,
-        new QTableWidgetItem(QString::number(payment->fees)));
+        new QTableWidgetItem(QString::number(payment->fees, 'f', 2)));
     payment_table_->setItem(
         payment_table_->rowCount() - 1, 4,
         new QTableWidgetItem(QString::number(payment->ddm)));
@@ -218,7 +218,7 @@ void MainWindow::on_payment_apply_clicked() {
         new QTableWidgetItem(QString::fromStdString(payment->date)));
     payment_table_->setItem(
         payment_table_->rowCount() - 1, 6,
-        new QTableWidgetItem(QString::number(payment->amount)));
+        new QTableWidgetItem(QString::number(payment->amount, 'f', 2)));
     payment_table_->setItem(
         payment_table_->rowCount() - 1, 7,
         new QTableWidgetItem(QString::fromStdString(payment->payment_type)));

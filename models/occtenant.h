@@ -7,11 +7,11 @@
 
 #include "model.h"
 
-class OccTenant : public Model<OccTenant> {
+class Occupancy_Tenant : public Model<Occupancy_Tenant> {
  public:
   using Model::Model;
 
-  static const Table<OccTenant>& table();
+  static const Table<Occupancy_Tenant>& table();
 
   static const std::string sql_req_sel_all;
   static const std::string sql_req_sel_all_as_str;
@@ -27,6 +27,6 @@ class OccTenant : public Model<OccTenant> {
   ForeignKey tenant_;
 };
 
-REGISTER_MODEL(OccTenant);
+REGISTER_MODEL(Occupancy_Tenant);
 
 #endif  //RJMMO_OCCTENANT_H

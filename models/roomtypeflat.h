@@ -10,11 +10,11 @@
 #include "flat.h"
 #include "roomtype.h"
 
-class RoomTypeFlat : public Model<RoomTypeFlat> {
+class RoomType_Flat : public Model<RoomType_Flat> {
  public:
   using Model::Model;
 
-  static const Table<RoomTypeFlat>& table();
+  static const Table<RoomType_Flat>& table();
 
   static const std::string sql_req_sel_all;
   static const std::string sql_req_sel_all_as_str;
@@ -35,6 +35,6 @@ class RoomTypeFlat : public Model<RoomTypeFlat> {
   ForeignKey flat_;
 };
 
-REGISTER_MODEL(RoomTypeFlat);
+REGISTER_MODEL(RoomType_Flat);
 
 #endif  //RJMMO_ROOMTYPEFLAT_H

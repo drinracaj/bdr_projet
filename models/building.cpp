@@ -31,8 +31,7 @@ const Table<Building>& Building::table() {
 }
 
 const std::string Building::sql_req_sel_all =
-    "SELECT * FROM " + ModelRegistry::model(typeid(Building));
+    "SELECT * FROM Building;";
 
 const std::string Building::sql_req_sel_all_as_str =
-    "SELECT id, CONCAT(street, ' ', no) AS as_str FROM " +
-    ModelRegistry::model(typeid(Building));
+    "SELECT id, CONCAT(street, ' ', no) AS as_str FROM Building;";

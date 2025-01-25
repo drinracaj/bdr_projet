@@ -10,11 +10,11 @@
 #include "flat.h"
 #include "watermeter.h"
 
-class WaterMeterFlat : public Model<WaterMeterFlat> {
+class Flat_WaterMeter : public Model<Flat_WaterMeter> {
  public:
   using Model::Model;
 
-  static const Table<WaterMeterFlat>& table();
+  static const Table<Flat_WaterMeter>& table();
 
   static const std::string sql_req_sel_all;
   static const std::string sql_req_sel_all_as_str;
@@ -30,6 +30,6 @@ class WaterMeterFlat : public Model<WaterMeterFlat> {
   ForeignKey watermeter_;
 };
 
-REGISTER_MODEL(WaterMeterFlat);
+REGISTER_MODEL(Flat_WaterMeter);
 
 #endif  //RJMMO_WATERMETERFLAT_H

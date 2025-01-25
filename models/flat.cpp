@@ -19,16 +19,19 @@ const Table<Flat>& Flat::table() {
            [](Flat& f, FieldSetter val) -> void {
              f.building(std::move(std::get<ForeignKey>(val)));
            },
-           "building_id", "Building", ColumnType::FK, OnDelete::CASCADE,
+           "idbuilding", "Building", ColumnType::FK, OnDelete::CASCADE,
            typeid(Building))}};
   return table;
 }
 
 const std::string Flat::sql_req_sel_all =
-    "SELECT Flat.*, CONCAT(Building.street, ' ', Building.no) AS building_id" +
+    "SELECT Flat.*, CONCAT(Building.street, ' ', Building.no) AS idBuilding" +
     FK_SUFFIX +
-    " FROM Flat INNER JOIN Building ON Flat.building_id = Building.id";
+    " FROM Flat "
+    "INNER JOIN Building ON Flat.idBuilding = Building.id";
 
 const std::string Flat::sql_req_sel_all_as_str =
     "SELECT Flat.id, CONCAT(Building.street, ' ', Building.no, ' - ', Flat.no) "
-    "AS as_str FROM Flat INNER JOIN Building ON Flat.building_id = Building.id";
+    "AS as_str "
+    "FROM Flat "
+    "INNER JOIN Building ON Flat.idBuilding = Building.id";

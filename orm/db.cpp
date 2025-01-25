@@ -5,7 +5,6 @@
 #include "db.h"
 
 #include <soci/postgresql/soci-postgresql.h>
-#include <soci/sqlite3/soci-sqlite3.h>
 #include <fstream>
 
 const std::string db::APP_NAME = "rjmmo";
@@ -45,9 +44,7 @@ bool db::init() {
         "password=trustno1 "
         "host=localhost "
         "port=5666";
-    //if the .db file does not exist sqlite3 will create it
     session.open(soci::postgresql, co);
-    //    session << "PRAGMA foreign_keys = ON;";
   } catch (const soci::soci_error& e) {
     log(e.what(), true);
     return init_success;

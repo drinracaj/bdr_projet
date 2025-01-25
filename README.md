@@ -14,7 +14,7 @@
 # step pour setup
 - clone l'app
 - docker-compose up -d
-- depuis la racine du projet sudo docker exec -i bdr_postgresql_16 psql -U postgres -d nombd < init/01-init.sql (si des erreurs s'affichent c'est normal)
+- depuis la racine du projet sudo docker exec -i bdr_postgresql_16 psql -U postgres -d nombd < init/01-init.sql (Widows : docker exec -i bdr_postgresql_16 psql -U postgres -d nombd < init/01-init.sql)
 - depuis la racine du projet faire : mkdir /build && cd build
 - faire: cmake ..
 - faire: make

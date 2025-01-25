@@ -11,11 +11,11 @@ const Table<FeeType>& FeeType::table() {
           [](FeeType& f, FieldSetter val) -> void {
             f.type(std::move(std::get<std::string>(val)));
           },
-          "type", "Type", ColumnType::VARCHAR, 30)}};
+          "type", "Type", ColumnType::VARCHAR, 50)}};
   return table;
 }
 
-const std::string FeeType::sql_req_sel_all = "SELECT FeeType.* FROM FeeType";
+const std::string FeeType::sql_req_sel_all = "SELECT * FROM FeeType";
 
 const std::string FeeType::sql_req_sel_all_as_str =
-    "SELECT FeeType.id, FeeType.type AS as_str FROM FeeType";
+    "SELECT id, type AS as_str FROM FeeType";

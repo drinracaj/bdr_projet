@@ -18,24 +18,24 @@ class Occupancy : public Model<Occupancy> {
 
   //getters
   [[nodiscard]] const std::string& start() const { return start_; };
-  [[nodiscard]] int rent() const { return rent_; };
-  [[nodiscard]] int fees() const { return fees_; };
+  [[nodiscard]] double rent() const { return rent_; };
+  [[nodiscard]] double fees() const { return fees_; };
   [[nodiscard]] int ddm() const { return due_day_month_; };
   [[nodiscard]] const ForeignKey& flat() const { return flat_; };
   [[nodiscard]] StrViewOpt end() const { return end_; };
 
   //setters
   void start(std::string val) { start_ = std::move(val); }
-  void rent(int val) { rent_ = val; }
-  void fees(int val) { fees_ = val; }
+  void rent(double val) { rent_ = val; }
+  void fees(double val) { fees_ = val; }
   void ddm(int val) { due_day_month_ = val; }
   void flat(ForeignKey val) { flat_ = std::move(val); }
   void end(StrOpt val) { end_ = std::move(val); }
 
  private:
   std::string start_;
-  int rent_;
-  int fees_;
+  double rent_;
+  double fees_;
   int due_day_month_;
   ForeignKey flat_;
   StrOpt end_;

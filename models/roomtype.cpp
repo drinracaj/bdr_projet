@@ -18,12 +18,12 @@ const Table<RoomType>& RoomType::table() {
            [](RoomType& rt, FieldSetter val) -> void {
              rt.type(std::move(std::get<std::string>(val)));
            },
-           "type", "Type", ColumnType::VARCHAR, 20)}};
+           "type", "Type", ColumnType::VARCHAR, 30)}};
   return table;
 }
 
 const std::string RoomType::sql_req_sel_all =
-    "SELECT * FROM " + ModelRegistry::model(typeid(RoomType));
+    "SELECT * FROM RoomType";
 
 const std::string RoomType::sql_req_sel_all_as_str =
-    "SELECT id, type AS as_str FROM " + ModelRegistry::model(typeid(RoomType));
+    "SELECT id, type AS as_str FROM RoomType";

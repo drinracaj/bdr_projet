@@ -1,1241 +1,305 @@
---
--- PostgreSQL database dump
---
+CREATE TABLE IF NOT EXISTS Building (
+    id SERIAL PRIMARY KEY,
+    street VARCHAR(50) NOT NULL,
+    no VARCHAR(10) NOT NULL,
+    npa INTEGER NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    CONSTRAINT CK_Building_npa CHECK (npa >= 1000 AND npa <= 9999)
+);
 
--- Dumped from database version 16.6 (Debian 16.6-1.pgdg120+1)
--- Dumped by pg_dump version 16.6 (Debian 16.6-1.pgdg120+1)
+CREATE TABLE IF NOT EXISTS Flat (
+    id SERIAL PRIMARY KEY,
+    no VARCHAR(10) NOT NULL,
+    idBuilding INTEGER NOT NULL,
+    CONSTRAINT FK_Flat_idBuilding FOREIGN KEY (idBuilding) REFERENCES Building(id) ON DELETE RESTRICT
+);
 
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
+CREATE TABLE IF NOT EXISTS RoomType(
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(30) NOT NULL,
+    coefficient REAL NOT NULL,
+    CONSTRAINT CK_RoomType_coefficient CHECK (coefficient IN (0, 0.5, 1))
+);
 
-SET default_tablespace = '';
+CREATE TABLE IF NOT EXISTS RoomType_Flat(
+    id serial PRIMARY KEY,
+    idRoomType INTEGER NOT NULL,
+    idFlat INTEGER NOT NULL,
+    volume REAL NOT NULL,
+    CONSTRAINT FK_Flat_RoomType_idRoomType FOREIGN KEY(idRoomType) REFERENCES RoomType(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Flat_RoomType_idFlat FOREIGN KEY(idFlat) REFERENCES Flat(id) ON DELETE CASCADE,
+    CONSTRAINT CK_Flat_RoomType_volume CHECK (volume > 0)
+);
 
-SET default_table_access_method = heap;
+CREATE TABLE IF NOT EXISTS WaterMeter (
+    id serial PRIMARY KEY,
+    no VARCHAR(10) NOT NULL
+);
 
---
--- Name: building; Type: TABLE; Schema: public; Owner: postgres
---
+CREATE TABLE IF NOT EXISTS Flat_WaterMeter (
+    id serial PRIMARY KEY,
+    idWaterMeter INTEGER NOT NULL,
+    idFlat INTEGER NOT NULL,
+    CONSTRAINT Flat_WaterMeter_idWaterMeter FOREIGN KEY(idWaterMeter) REFERENCES WaterMeter(id) ON DELETE CASCADE,
+    CONSTRAINT Flat_WaterMeter_idFlat FOREIGN KEY(idFlat) REFERENCES Flat(id) ON DELETE CASCADE
+);
 
-CREATE TABLE public.building (
-                                 id integer NOT NULL,
-                                 street character varying(50) NOT NULL,
-                                 no character varying(10) NOT NULL,
-                                 npa integer NOT NULL,
-                                 city character varying(50) NOT NULL
+CREATE TABLE IF NOT EXISTS WaterMeasurement(
+    id serial PRIMARY KEY,
+    idWaterMeter INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    measure REAL NOT NULL,
+    CONSTRAINT WaterMeasurement_idWaterMeter FOREIGN KEY(idWaterMeter) REFERENCES WaterMeter(id) ON DELETE CASCADE,
+    CONSTRAINT CK_WaterMeasurement_year CHECK (year <= EXTRACT(YEAR FROM CURRENT_DATE)),
+    CONSTRAINT CK_WaterMeasurement_measure CHECK (measure >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS Occupancy(
+    id serial PRIMARY KEY,
+    idFlat INTEGER NOT NULL,
+    startDate DATE NOT NULL,
+    endDate DATE,
+    rent REAL NOT NULL,
+    fees REAL NOT NULL,
+    ddm INTEGER NOT NULL,
+    CONSTRAINT Occupancy_idFlat FOREIGN KEY(idFlat) REFERENCES Flat(id) ON DELETE RESTRICT,
+    CONSTRAINT CK_Occupany_end CHECK (endDate > startDate),
+    CONSTRAINT CK_Occupany_ddm CHECK (ddm >= 1 AND ddm <= 31)
+);
+
+CREATE TABLE IF NOT EXISTS PaymentType(
+    id serial PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    CONSTRAINT UC_PaymentType_type UNIQUE (type)
+);
+
+CREATE TABLE IF NOT EXISTS Payment(
+    id serial PRIMARY KEY,
+    idOccupancy INTEGER NOT NULL,
+    idPaymentType INTEGER NOT NULL,
+    date DATE NOT NULL,
+    amount REAL NOT NULL,
+    CONSTRAINT Payment_idOccupancy FOREIGN KEY(idOccupancy) REFERENCES Occupancy(id) ON DELETE CASCADE,
+    CONSTRAINT Payment_idPaymentType FOREIGN KEY(idPaymentType) REFERENCES PaymentType(id) ON DELETE RESTRICT,
+    CONSTRAINT CK_Payment_date CHECK (date <= CURRENT_DATE),
+    CONSTRAINT CK_Payment_amount CHECK (amount >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS Tenant(
+    id serial PRIMARY KEY,
+    firstName VARCHAR(50) NOT NULL,
+    lastName VARCHAR(70) NOT NULL,
+    email VARCHAR(320) NOT NULL,
+    tel VARCHAR(11) NOT NULL,
+    CONSTRAINT UC_Tenant_email UNIQUE (email)
+);
+
+CREATE TABLE IF NOT EXISTS Occupancy_Tenant(
+    id serial PRIMARY KEY,
+    idTenant INTEGER NOT NULL,
+    idOccupancy INTEGER NOT NULL,
+    CONSTRAINT Occupancy_Tenant_idTenant FOREIGN KEY(idTenant) REFERENCES Tenant(id) ON DELETE CASCADE,
+    CONSTRAINT Occupancy_Tenant_idOccupancy FOREIGN KEY(idOccupancy) REFERENCES Occupancy(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Company(
+    id serial PRIMARY KEY,
+    name VARCHAR(35) NOT NULL,
+    email VARCHAR(320),
+    tel VARCHAR(11),
+    CONSTRAINT UC_Company_email UNIQUE (email),
+    CONSTRAINT UC_Company_tel UNIQUE (tel)
+);
+
+CREATE TABLE IF NOT EXISTS FeeType(
+    id serial PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    CONSTRAINT UC_FeeType_type UNIQUE (type)
+);
+
+CREATE TABLE IF NOT EXISTS Invoice(
+    id serial PRIMARY KEY,
+    idBuilding INTEGER NOT NULL,
+    idCompany INTEGER NOT NULL,
+    idFeeType INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    date DATE NOT NULL,
+    CONSTRAINT Invoice_idBuilding FOREIGN KEY(idBuilding) REFERENCES Building(id) ON DELETE RESTRICT,
+    CONSTRAINT Invoice_idCompany FOREIGN KEY(idCompany) REFERENCES Company(id) ON DELETE RESTRICT,
+    CONSTRAINT Invoice_idFeeType FOREIGN KEY(idFeeType) REFERENCES FeeType(id) ON DELETE RESTRICT,
+    CONSTRAINT CK_Invoice_amount CHECK (amount >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS HeatMonthlyCoefficient(
+    id serial PRIMARY KEY,
+    month INTEGER NOT NULL,
+    coefficient REAL NOT NULL,
+    CONSTRAINT UC_HeatMonthlyCoefficient_month UNIQUE (month),
+    CONSTRAINT CK_HeatMonthlyCoefficient_month CHECK (month >= 1 AND month <= 12),
+    CONSTRAINT CK_HeatMonthlyCoefficient_coefficient CHECK (coefficient >= 0 AND coefficient <= 100.00)
 );
 
 
-ALTER TABLE public.building OWNER TO postgres;
-
---
--- Name: building_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.building_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.building_id_seq OWNER TO postgres;
-
---
--- Name: building_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.building_id_seq OWNED BY public.building.id;
-
-
---
--- Name: company; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.company (
-                                id integer NOT NULL,
-                                name character varying(35) NOT NULL,
-                                email character varying(320) NOT NULL,
-                                tel character varying(11) NOT NULL
-);
-
-
-ALTER TABLE public.company OWNER TO postgres;
-
---
--- Name: company_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.company_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.company_id_seq OWNER TO postgres;
-
---
--- Name: company_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.company_id_seq OWNED BY public.company.id;
-
-
---
--- Name: feetype; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.feetype (
-                                id integer NOT NULL,
-                                type character varying(30) NOT NULL
-);
-
-
-ALTER TABLE public.feetype OWNER TO postgres;
-
---
--- Name: feetype_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.feetype_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.feetype_id_seq OWNER TO postgres;
-
---
--- Name: feetype_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.feetype_id_seq OWNED BY public.feetype.id;
-
-
---
--- Name: flat; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.flat (
-                             id integer NOT NULL,
-                             no character varying(10) NOT NULL,
-                             building_id integer NOT NULL
-);
-
-
-ALTER TABLE public.flat OWNER TO postgres;
-
---
--- Name: flat_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.flat_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.flat_id_seq OWNER TO postgres;
-
---
--- Name: flat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.flat_id_seq OWNED BY public.flat.id;
-
-
---
--- Name: heatmonthlycoefficient; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.heatmonthlycoefficient (
-                                               id integer NOT NULL,
-                                               month integer NOT NULL,
-                                               coefficient real NOT NULL
-);
-
-
-ALTER TABLE public.heatmonthlycoefficient OWNER TO postgres;
-
---
--- Name: heatmonthlycoefficient_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.heatmonthlycoefficient_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.heatmonthlycoefficient_id_seq OWNER TO postgres;
-
---
--- Name: heatmonthlycoefficient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.heatmonthlycoefficient_id_seq OWNED BY public.heatmonthlycoefficient.id;
-
-
---
--- Name: invoice; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.invoice (
-                                id integer NOT NULL,
-                                amount real NOT NULL,
-                                date date NOT NULL,
-                                building_id integer NOT NULL,
-                                fee_type_id integer NOT NULL,
-                                company_id integer NOT NULL
-);
-
-
-ALTER TABLE public.invoice OWNER TO postgres;
-
---
--- Name: invoice_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.invoice_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.invoice_id_seq OWNER TO postgres;
-
---
--- Name: invoice_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.invoice_id_seq OWNED BY public.invoice.id;
-
-
---
--- Name: occtenant; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.occtenant (
-                                  id integer NOT NULL,
-                                  occupancy_id integer NOT NULL,
-                                  tenant_id integer NOT NULL
-);
-
-
-ALTER TABLE public.occtenant OWNER TO postgres;
-
---
--- Name: occtenant_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.occtenant_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.occtenant_id_seq OWNER TO postgres;
-
---
--- Name: occtenant_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.occtenant_id_seq OWNED BY public.occtenant.id;
-
-
---
--- Name: occupancy; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.occupancy (
-                                  id integer NOT NULL,
-                                  start date NOT NULL,
-                                  rent integer NOT NULL,
-                                  fees integer NOT NULL,
-                                  ddm integer NOT NULL,
-                                  flat_id integer NOT NULL,
-                                  end_date date
-);
-
-
-ALTER TABLE public.occupancy OWNER TO postgres;
-
---
--- Name: occupancy_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.occupancy_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.occupancy_id_seq OWNER TO postgres;
-
---
--- Name: occupancy_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.occupancy_id_seq OWNED BY public.occupancy.id;
-
-
---
--- Name: payment; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.payment (
-                                id integer NOT NULL,
-                                date date NOT NULL,
-                                amount integer NOT NULL,
-                                paymenttype_id integer NOT NULL,
-                                occupancy_id integer NOT NULL
-);
-
-
-ALTER TABLE public.payment OWNER TO postgres;
-
---
--- Name: payment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.payment_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.payment_id_seq OWNER TO postgres;
-
---
--- Name: payment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.payment_id_seq OWNED BY public.payment.id;
-
-
---
--- Name: paymenttype; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.paymenttype (
-                                    id integer NOT NULL,
-                                    type character varying(15) NOT NULL
-);
-
-
-ALTER TABLE public.paymenttype OWNER TO postgres;
-
---
--- Name: paymenttype_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.paymenttype_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.paymenttype_id_seq OWNER TO postgres;
-
---
--- Name: paymenttype_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.paymenttype_id_seq OWNED BY public.paymenttype.id;
-
-
---
--- Name: roomtype; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.roomtype (
-                                 id integer NOT NULL,
-                                 coefficient real NOT NULL,
-                                 type character varying(20) NOT NULL
-);
-
-
-ALTER TABLE public.roomtype OWNER TO postgres;
-
---
--- Name: roomtype_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.roomtype_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.roomtype_id_seq OWNER TO postgres;
-
---
--- Name: roomtype_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.roomtype_id_seq OWNED BY public.roomtype.id;
-
-
---
--- Name: roomtypeflat; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.roomtypeflat (
-                                     id integer NOT NULL,
-                                     volume real NOT NULL,
-                                     room_type_id integer NOT NULL,
-                                     flat_id integer NOT NULL
-);
-
-
-ALTER TABLE public.roomtypeflat OWNER TO postgres;
-
---
--- Name: roomtypeflat_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.roomtypeflat_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.roomtypeflat_id_seq OWNER TO postgres;
-
---
--- Name: roomtypeflat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.roomtypeflat_id_seq OWNED BY public.roomtypeflat.id;
-
-
---
--- Name: tenant; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.tenant (
-                               id integer NOT NULL,
-                               firstname character varying(35) NOT NULL,
-                               lastname character varying(35) NOT NULL,
-                               email character varying(320) NOT NULL,
-                               tel character varying(11) NOT NULL
-);
-
-
-ALTER TABLE public.tenant OWNER TO postgres;
-
---
--- Name: tenant_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.tenant_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.tenant_id_seq OWNER TO postgres;
-
---
--- Name: tenant_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.tenant_id_seq OWNED BY public.tenant.id;
-
-
---
--- Name: watermeasurement; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.watermeasurement (
-                                         id integer NOT NULL,
-                                         year integer NOT NULL,
-                                         measure real NOT NULL,
-                                         watermeter_id integer NOT NULL
-);
-
-
-ALTER TABLE public.watermeasurement OWNER TO postgres;
-
---
--- Name: watermeasurement_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.watermeasurement_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.watermeasurement_id_seq OWNER TO postgres;
-
---
--- Name: watermeasurement_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.watermeasurement_id_seq OWNED BY public.watermeasurement.id;
-
-
---
--- Name: watermeter; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.watermeter (
-                                   id integer NOT NULL,
-                                   no character varying(10) NOT NULL
-);
-
-
-ALTER TABLE public.watermeter OWNER TO postgres;
-
---
--- Name: watermeter_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.watermeter_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.watermeter_id_seq OWNER TO postgres;
-
---
--- Name: watermeter_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.watermeter_id_seq OWNED BY public.watermeter.id;
-
-
---
--- Name: watermeterflat; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.watermeterflat (
-                                       id integer NOT NULL,
-                                       flat_id integer NOT NULL,
-                                       watermeter_id integer NOT NULL
-);
-
-
-ALTER TABLE public.watermeterflat OWNER TO postgres;
-
---
--- Name: watermeterflat_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.watermeterflat_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.watermeterflat_id_seq OWNER TO postgres;
-
---
--- Name: watermeterflat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.watermeterflat_id_seq OWNED BY public.watermeterflat.id;
-
-
---
--- Name: building id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.building ALTER COLUMN id SET DEFAULT nextval('public.building_id_seq'::regclass);
-
-
---
--- Name: company id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.company ALTER COLUMN id SET DEFAULT nextval('public.company_id_seq'::regclass);
-
-
---
--- Name: feetype id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feetype ALTER COLUMN id SET DEFAULT nextval('public.feetype_id_seq'::regclass);
-
-
---
--- Name: flat id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.flat ALTER COLUMN id SET DEFAULT nextval('public.flat_id_seq'::regclass);
-
-
---
--- Name: heatmonthlycoefficient id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.heatmonthlycoefficient ALTER COLUMN id SET DEFAULT nextval('public.heatmonthlycoefficient_id_seq'::regclass);
-
-
---
--- Name: invoice id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.invoice ALTER COLUMN id SET DEFAULT nextval('public.invoice_id_seq'::regclass);
-
-
---
--- Name: occtenant id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occtenant ALTER COLUMN id SET DEFAULT nextval('public.occtenant_id_seq'::regclass);
-
-
---
--- Name: occupancy id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occupancy ALTER COLUMN id SET DEFAULT nextval('public.occupancy_id_seq'::regclass);
-
-
---
--- Name: payment id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.payment ALTER COLUMN id SET DEFAULT nextval('public.payment_id_seq'::regclass);
-
-
---
--- Name: paymenttype id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.paymenttype ALTER COLUMN id SET DEFAULT nextval('public.paymenttype_id_seq'::regclass);
-
-
---
--- Name: roomtype id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.roomtype ALTER COLUMN id SET DEFAULT nextval('public.roomtype_id_seq'::regclass);
-
-
---
--- Name: roomtypeflat id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.roomtypeflat ALTER COLUMN id SET DEFAULT nextval('public.roomtypeflat_id_seq'::regclass);
-
-
---
--- Name: tenant id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.tenant ALTER COLUMN id SET DEFAULT nextval('public.tenant_id_seq'::regclass);
-
-
---
--- Name: watermeasurement id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeasurement ALTER COLUMN id SET DEFAULT nextval('public.watermeasurement_id_seq'::regclass);
-
-
---
--- Name: watermeter id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeter ALTER COLUMN id SET DEFAULT nextval('public.watermeter_id_seq'::regclass);
-
-
---
--- Name: watermeterflat id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeterflat ALTER COLUMN id SET DEFAULT nextval('public.watermeterflat_id_seq'::regclass);
-
-
---
--- Data for Name: building; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.building (id, street, no, npa, city) FROM stdin;
-1	Rue des Greniers	1-3	1522	Lucens
-\.
-
-
---
--- Data for Name: company; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.company (id, name, email, tel) FROM stdin;
-2	JM Michoud	jm@michoud.ch	0244302378
-3	groupe e	info@entretec.ch	0264667080
-4	Pillnel Thermique	yp@pillonelthermique.ch	0266635680
-5	Lucens	bourse@lucens.ch	0219061559
-6	energiapro	client@energiapro.ch	0800429429
-\.
-
-
---
--- Data for Name: feetype; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.feetype (id, type) FROM stdin;
-1	Eau chaude & Chauffage
-2	Epuration
-3	Divers
-\.
-
-
---
--- Data for Name: flat; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.flat (id, no, building_id) FROM stdin;
-1	101	1
-2	01	1
-3	11	1
-\.
-
-
---
--- Data for Name: heatmonthlycoefficient; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.heatmonthlycoefficient (id, month, coefficient) FROM stdin;
-1	1	18
-2	2	16
-3	3	15
-4	4	10
-5	5	5
-6	6	0
-7	7	0
-8	8	0
-9	9	2
-12	12	18
-10	10	6
-11	11	10
-\.
-
-
---
--- Data for Name: invoice; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.invoice (id, amount, date, building_id, fee_type_id, company_id) FROM stdin;
-1	3069	2023-08-31	1	1	6
-2	3000	2023-10-31	1	1	6
-3	2000	2023-12-31	1	1	6
-4	3000	2024-02-29	1	1	6
-5	2000	2024-04-01	1	1	6
-6	171	2023-09-15	1	1	2
-7	479	2024-01-31	1	1	3
-8	398	2023-10-01	1	1	4
-9	1685	2023-12-07	1	2	5
-10	1501	2024-06-01	1	2	5
-\.
-
-
---
--- Data for Name: occtenant; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.occtenant (id, occupancy_id, tenant_id) FROM stdin;
-1	1	3
-2	2	2
-3	3	1
-\.
-
-
---
--- Data for Name: occupancy; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.occupancy (id, start, rent, fees, ddm, flat_id, end_date) FROM stdin;
-3	2024-01-01	850	150	7	2	\N
-2	2023-07-01	1450	300	7	3	\N
-1	2023-01-01	2200	350	7	1	2024-01-01
-\.
-
-
---
--- Data for Name: payment; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.payment (id, date, amount, paymenttype_id, occupancy_id) FROM stdin;
-\.
-
-
---
--- Data for Name: paymenttype; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.paymenttype (id, type) FROM stdin;
-\.
-
-
---
--- Data for Name: roomtype; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.roomtype (id, coefficient, type) FROM stdin;
-1	1	Salon
-2	1	Chambre
-\.
-
-
---
--- Data for Name: roomtypeflat; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.roomtypeflat (id, volume, room_type_id, flat_id) FROM stdin;
-1	200	1	1
-2	176	2	1
-3	100	1	2
-4	11	2	2
-5	150	1	3
-6	61	2	3
-\.
-
-
---
--- Data for Name: tenant; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.tenant (id, firstname, lastname, email, tel) FROM stdin;
-1	John	Doe	john@doe.com	89723984739
-2	Marvin	Mark	marvin@mark.com	28726873263
-3	Josephine	Pierre	josephine@pierre.com	78632786327
-\.
-
-
---
--- Data for Name: watermeasurement; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.watermeasurement (id, year, measure, watermeter_id) FROM stdin;
-\.
-
-
---
--- Data for Name: watermeter; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.watermeter (id, no) FROM stdin;
-\.
-
-
---
--- Data for Name: watermeterflat; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.watermeterflat (id, flat_id, watermeter_id) FROM stdin;
-\.
-
-
---
--- Name: building_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.building_id_seq', 1, true);
-
-
---
--- Name: company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.company_id_seq', 6, true);
-
-
---
--- Name: feetype_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.feetype_id_seq', 3, true);
-
-
---
--- Name: flat_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.flat_id_seq', 3, true);
-
-
---
--- Name: heatmonthlycoefficient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.heatmonthlycoefficient_id_seq', 12, true);
-
-
---
--- Name: invoice_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.invoice_id_seq', 10, true);
-
-
---
--- Name: occtenant_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.occtenant_id_seq', 3, true);
-
-
---
--- Name: occupancy_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.occupancy_id_seq', 3, true);
-
-
---
--- Name: payment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.payment_id_seq', 1, false);
-
-
---
--- Name: paymenttype_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.paymenttype_id_seq', 1, false);
-
-
---
--- Name: roomtype_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.roomtype_id_seq', 2, true);
-
-
---
--- Name: roomtypeflat_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.roomtypeflat_id_seq', 6, true);
-
-
---
--- Name: tenant_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.tenant_id_seq', 3, true);
-
-
---
--- Name: watermeasurement_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.watermeasurement_id_seq', 1, false);
-
-
---
--- Name: watermeter_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.watermeter_id_seq', 1, false);
-
-
---
--- Name: watermeterflat_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.watermeterflat_id_seq', 1, false);
-
-
---
--- Name: building building_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.building
-    ADD CONSTRAINT building_pkey PRIMARY KEY (id);
-
-
---
--- Name: company company_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.company
-    ADD CONSTRAINT company_pkey PRIMARY KEY (id);
-
-
---
--- Name: feetype feetype_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.feetype
-    ADD CONSTRAINT feetype_pkey PRIMARY KEY (id);
-
-
---
--- Name: flat flat_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.flat
-    ADD CONSTRAINT flat_pkey PRIMARY KEY (id);
-
-
---
--- Name: heatmonthlycoefficient heatmonthlycoefficient_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.heatmonthlycoefficient
-    ADD CONSTRAINT heatmonthlycoefficient_pkey PRIMARY KEY (id);
-
-
---
--- Name: invoice invoice_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.invoice
-    ADD CONSTRAINT invoice_pkey PRIMARY KEY (id);
-
-
---
--- Name: occtenant occtenant_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occtenant
-    ADD CONSTRAINT occtenant_pkey PRIMARY KEY (id);
-
-
---
--- Name: occupancy occupancy_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occupancy
-    ADD CONSTRAINT occupancy_pkey PRIMARY KEY (id);
-
-
---
--- Name: payment payment_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.payment
-    ADD CONSTRAINT payment_pkey PRIMARY KEY (id);
-
-
---
--- Name: paymenttype paymenttype_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.paymenttype
-    ADD CONSTRAINT paymenttype_pkey PRIMARY KEY (id);
-
-
---
--- Name: roomtype roomtype_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.roomtype
-    ADD CONSTRAINT roomtype_pkey PRIMARY KEY (id);
-
-
---
--- Name: roomtypeflat roomtypeflat_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.roomtypeflat
-    ADD CONSTRAINT roomtypeflat_pkey PRIMARY KEY (id);
-
-
---
--- Name: tenant tenant_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.tenant
-    ADD CONSTRAINT tenant_pkey PRIMARY KEY (id);
-
-
---
--- Name: watermeasurement watermeasurement_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeasurement
-    ADD CONSTRAINT watermeasurement_pkey PRIMARY KEY (id);
-
-
---
--- Name: watermeter watermeter_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeter
-    ADD CONSTRAINT watermeter_pkey PRIMARY KEY (id);
-
-
---
--- Name: watermeterflat watermeterflat_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeterflat
-    ADD CONSTRAINT watermeterflat_pkey PRIMARY KEY (id);
-
-
---
--- Name: flat flat_building_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.flat
-    ADD CONSTRAINT flat_building_id_fkey FOREIGN KEY (building_id) REFERENCES public.building(id) ON DELETE CASCADE;
-
-
---
--- Name: invoice invoice_building_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.invoice
-    ADD CONSTRAINT invoice_building_id_fkey FOREIGN KEY (building_id) REFERENCES public.building(id) ON DELETE CASCADE;
-
-
---
--- Name: invoice invoice_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.invoice
-    ADD CONSTRAINT invoice_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.company(id) ON DELETE CASCADE;
-
-
---
--- Name: invoice invoice_fee_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.invoice
-    ADD CONSTRAINT invoice_fee_type_id_fkey FOREIGN KEY (fee_type_id) REFERENCES public.feetype(id) ON DELETE CASCADE;
-
-
---
--- Name: occtenant occtenant_occupancy_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occtenant
-    ADD CONSTRAINT occtenant_occupancy_id_fkey FOREIGN KEY (occupancy_id) REFERENCES public.occupancy(id) ON DELETE CASCADE;
-
-
---
--- Name: occtenant occtenant_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occtenant
-    ADD CONSTRAINT occtenant_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenant(id) ON DELETE CASCADE;
-
-
---
--- Name: occupancy occupancy_flat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.occupancy
-    ADD CONSTRAINT occupancy_flat_id_fkey FOREIGN KEY (flat_id) REFERENCES public.flat(id) ON DELETE CASCADE;
-
-
---
--- Name: payment payment_occupancy_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.payment
-    ADD CONSTRAINT payment_occupancy_id_fkey FOREIGN KEY (occupancy_id) REFERENCES public.occupancy(id) ON DELETE CASCADE;
-
-
---
--- Name: payment payment_paymenttype_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.payment
-    ADD CONSTRAINT payment_paymenttype_id_fkey FOREIGN KEY (paymenttype_id) REFERENCES public.paymenttype(id) ON DELETE CASCADE;
-
-
---
--- Name: roomtypeflat roomtypeflat_flat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.roomtypeflat
-    ADD CONSTRAINT roomtypeflat_flat_id_fkey FOREIGN KEY (flat_id) REFERENCES public.flat(id) ON DELETE CASCADE;
-
-
---
--- Name: roomtypeflat roomtypeflat_room_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.roomtypeflat
-    ADD CONSTRAINT roomtypeflat_room_type_id_fkey FOREIGN KEY (room_type_id) REFERENCES public.roomtype(id) ON DELETE CASCADE;
-
-
---
--- Name: watermeasurement watermeasurement_watermeter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeasurement
-    ADD CONSTRAINT watermeasurement_watermeter_id_fkey FOREIGN KEY (watermeter_id) REFERENCES public.watermeter(id) ON DELETE CASCADE;
-
-
---
--- Name: watermeterflat watermeterflat_flat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeterflat
-    ADD CONSTRAINT watermeterflat_flat_id_fkey FOREIGN KEY (flat_id) REFERENCES public.flat(id) ON DELETE CASCADE;
-
-
---
--- Name: watermeterflat watermeterflat_watermeter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.watermeterflat
-    ADD CONSTRAINT watermeterflat_watermeter_id_fkey FOREIGN KEY (watermeter_id) REFERENCES public.watermeter(id) ON DELETE CASCADE;
-
-
---
--- PostgreSQL database dump complete
---
+CREATE OR REPLACE FUNCTION checkCoefficientSum() RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF (SELECT SUM(coefficient) FROM HeatMonthlyCoefficient) > 100.00 + 0.001
+    THEN RAISE EXCEPTION 'Sum of coefficient cannot exceed 100.00';
+END IF;
+RETURN NEW;
+END $$;
+
+CREATE TRIGGER triggerCheckCoefficientSum
+BEFORE INSERT OR UPDATE ON HeatMonthlyCoefficient
+FOR EACH ROW EXECUTE FUNCTION checkCoefficientSum();
+
+
+-- INSERT DATA
+
+-- Building
+INSERT INTO Building (street, no, npa, city) VALUES ('Rue des Greniers', '1-3', 1522, 'Lucens');
+
+-- Flat
+INSERT INTO Flat (no, idBuilding) VALUES ('01', 1);
+INSERT INTO Flat (no, idBuilding) VALUES ('11', 1);
+INSERT INTO Flat (no, idBuilding) VALUES ('101', 1);
+
+-- RoomType
+INSERT INTO RoomType (type, coefficient) VALUES ('Living room', 1);
+INSERT INTO RoomType (type, coefficient) VALUES ('Bedroom', 1);
+INSERT INTO RoomType (type, coefficient) VALUES ('Bedroom/Living room', 1);
+INSERT INTO RoomType (type, coefficient) VALUES ('Kitchen', 0.5);
+INSERT INTO RoomType (type, coefficient) VALUES ('Bathroom', 0);
+
+-- RoomType_Flat
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (3, 1, 50);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (4, 1, 35);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (5, 1, 28);
+
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (1, 2, 60);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 2, 45);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 2, 25);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 2, 25);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (4, 2, 40);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (5, 2, 16);
+
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (1, 3, 90);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 3, 60);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 3, 40);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 3, 30);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (2, 3, 30);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (5, 3, 23);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (5, 3, 23);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (4, 3, 40);
+INSERT INTO RoomType_Flat (idRoomType, idFlat, volume) VALUES (4, 3, 40);
+
+-- WaterMeter
+INSERT INTO WaterMeter (no) VALUES ('A123');
+
+-- Flat_WaterMeter
+INSERT INTO Flat_WaterMeter (idWaterMeter, idFlat) VALUES (1, 1);
+
+-- WaterMeasurement
+INSERT INTO WaterMeasurement (idWaterMeter, year, measure) VALUES (1, 2020, 100);
+
+-- Occupancy
+INSERT INTO Occupancy (idFlat, startDate, endDate, rent, fees, ddm)
+VALUES (1, '2023-07-01', NULL, 850, 100, 7);
+INSERT INTO Occupancy (idFlat, startDate, endDate, rent, fees, ddm)
+VALUES (2, '2023-01-01', NULL, 1450, 250, 7);
+INSERT INTO Occupancy (idFlat, startDate, endDate, rent, fees, ddm)
+VALUES (3, '2024-01-01', NULL, 2200, 300, 7);
+
+-- PaymentType
+INSERT INTO PaymentType (type) VALUES ('Bank transfer');
+INSERT INTO PaymentType (type) VALUES ('Poste');
+INSERT INTO PaymentType (type) VALUES ('TWINT');
+
+-- Payment
+INSERT INTO Payment (idOccupancy, idPaymentType, date, amount) VALUES
+(1, 1, '2023-07-07', 950),
+(1, 1, '2023-08-07', 950),
+(1, 1, '2023-09-07', 950),
+(1, 2, '2023-10-07', 950),
+(1, 1, '2023-11-07', 950),
+(1, 1, '2023-12-07', 950),
+(1, 3, '2024-01-07', 950);
+
+INSERT INTO Payment (idOccupancy, idPaymentType, date, amount) VALUES
+(2, 1, '2023-01-07', 1700),
+(2, 1, '2023-02-07', 1700),
+(2, 2, '2023-03-07', 1700),
+(2, 1, '2023-04-07', 1700),
+(2, 1, '2023-05-07', 1700),
+(2, 1, '2023-06-07', 1700),
+(2, 3, '2023-07-07', 1700),
+(2, 1, '2023-08-07', 1700),
+(2, 1, '2023-09-07', 1700),
+(2, 1, '2023-10-07', 1700),
+(2, 2, '2023-11-07', 1700),
+(2, 1, '2023-12-07', 1700),
+(2, 1, '2024-01-07', 1700);
+
+INSERT INTO Payment (idOccupancy, idPaymentType, date, amount)
+VALUES (3, 1, '2024-01-07', 2500);
+
+-- Tenant
+INSERT INTO Tenant (firstName, lastName, email, tel) VALUES
+('Sarah', 'Martinez', 'sarah.martinez@email.com', '0791234567'),
+('Thomas', 'Müller', 'thomas.mueller@email.com', '0789876543'),
+('Marie', 'Dubois', 'marie.dubois@email.com', '0781122334');
+
+-- Occupancy_Tenant
+INSERT INTO Occupancy_Tenant (idTenant, idOccupancy) VALUES
+(1, 1),
+(2, 2),
+(3, 3);
+
+-- Company
+INSERT INTO Company (name, email, tel) VALUES ('Energiapro SA', 'client@energiapro.ch', '0800429429');
+INSERT INTO Company (name, email, tel) VALUES ('JM MICHOUD', 'michoud.ramoneur@bluewin.ch', '0794257347');
+INSERT INTO Company (name, email, tel) VALUES ('groupe e', 'finance@entretec.ch', '0264667080');
+INSERT INTO Company (name, email, tel) VALUES ('Pillonel Thermique', 'yp@pillonelthermique.ch', '0266635680');
+INSERT INTO Company (name, email, tel) VALUES ('Commune Lucens', 'bourse@lucens.ch', '0219061559');
+
+-- FeeType
+INSERT INTO FeeType (type) VALUES ('Heating/Hot water');
+INSERT INTO FeeType (type) VALUES ('Water purification');
+INSERT INTO FeeType (type) VALUES ('Misc');
+
+-- Invoice
+INSERT INTO Invoice (idBuilding, idCompany, idFeeType, amount, date) VALUES
+(1, 1, 1, 2450.00, '2023-03-15'),
+(1, 1, 1, 1850.00, '2023-06-15'),
+(1, 1, 1, 1250.00, '2023-09-15'),
+(1, 1, 1, 2850.00, '2023-12-15'),
+(1, 1, 1, 2950.00, '2024-03-15'),
+(1, 1, 1, 2150.00, '2024-06-15');
+
+INSERT INTO Invoice (idBuilding, idCompany, idFeeType, amount, date) VALUES
+(1, 5, 2, 780.00, '2023-06-30'),
+(1, 5, 2, 845.00, '2023-12-31'),
+(1, 5, 2, 890.00, '2024-06-30');
+
+INSERT INTO Invoice (idBuilding, idCompany, idFeeType, amount, date) VALUES
+(1, 2, 1, 450.00, '2023-05-20'),
+(1, 2, 1, 450.00, '2024-05-20');
+
+INSERT INTO Invoice (idBuilding, idCompany, idFeeType, amount, date) VALUES
+(1, 4, 1, 850.00, '2023-08-10'),
+(1, 4, 1, 875.00, '2024-08-10');
+
+INSERT INTO HeatMonthlyCoefficient (month, coefficient) VALUES
+(1, 18.00),
+(2, 15.00),
+(3, 14.00),
+(4, 8.00),
+(5, 4.00),
+(6, 0.0),
+(7, 0.0),
+(8, 0.0),
+(9, 2.00),
+(10, 8.00),
+(11, 13.00),
+(12, 18.00);

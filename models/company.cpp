@@ -29,7 +29,7 @@ const Table<Company>& Company::table() {
 }
 
 const std::string Company::sql_req_sel_all =
-    "SELECT * FROM " + ModelRegistry::model(typeid(Company));
+    "SELECT * FROM Company;";
 
 const std::string Company::sql_req_sel_all_as_str =
-    "SELECT id, name AS as_str FROM " + ModelRegistry::model(typeid(Company));
+    "SELECT id, name AS as_str FROM Company;";

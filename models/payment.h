@@ -17,20 +17,20 @@ class Payment : public Model<Payment> {
   static const std::string sql_req_sel_all_as_str;
 
   [[nodiscard]] const std::string& date() const { return date_; }
-  [[nodiscard]] int amount() const { return amount_; }
+  [[nodiscard]] double amount() const { return amount_; }
   [[nodiscard]] const ForeignKey& payment_type() const {
     return payment_type_;
   };
   [[nodiscard]] const ForeignKey& occupancy() const { return occupancy_; };
 
   void date(std::string val) { date_ = std::move(val); }
-  void amount(int val) { amount_ = val; }
+  void amount(double val) { amount_ = val; }
   void payment_type(ForeignKey val) { payment_type_ = std::move(val); }
   void occupancy(ForeignKey val) { occupancy_ = std::move(val); }
 
  private:
   std::string date_;
-  int amount_;
+  double amount_;
   ForeignKey payment_type_;
   ForeignKey occupancy_;
 };

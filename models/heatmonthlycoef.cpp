@@ -24,6 +24,6 @@ const Table<HeatMonthlyCoefficient>& HeatMonthlyCoefficient::table() {
 }
 
 const std::string HeatMonthlyCoefficient::sql_req_sel_all =
-    "SELECT HeatMonthlyCoefficient.* FROM HeatMonthlyCoefficient";
+    "SELECT * FROM HeatMonthlyCoefficient";
 
 const std::string HeatMonthlyCoefficient::sql_req_sel_all_as_str;

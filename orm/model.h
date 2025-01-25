@@ -161,7 +161,6 @@ class Model {
           col.setter(model, row.get<double>(col.name()));
           break;
         case ColumnType::DATE: {
-          soci::indicator ind;
           std::ostringstream oss;
           std::tm date = row.get<std::tm>(col.name());
           oss << std::put_time(&date, "%Y-%m-%d");
