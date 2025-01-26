@@ -36,6 +36,7 @@ class MiscRequest {
   MiscRequest() = delete;
   ~MiscRequest() = delete;
 
+  //aide de Claude pour rediger des parties de la requete
   static std::optional<std::vector<std::unique_ptr<Fees>>> get_all_fees(
       int building_id, int year) {
     std::string req =
