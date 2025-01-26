@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS Building (
     no VARCHAR(10) NOT NULL,
     npa INTEGER NOT NULL,
     city VARCHAR(50) NOT NULL,
-    CONSTRAINT CK_Building_npa CHECK (npa >= 1000 AND npa <= 9999)
+    CONSTRAINT CK_Building_npa CHECK (npa >= 1000 AND npa <= 9999),
+    CONSTRAINT UC_Building_street_no UNIQUE (street, no)
 );
 
 CREATE TABLE IF NOT EXISTS Flat (
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS RoomType(
     id SERIAL PRIMARY KEY,
     type VARCHAR(30) NOT NULL,
     coefficient REAL NOT NULL,
-    CONSTRAINT CK_RoomType_coefficient CHECK (coefficient IN (0, 0.5, 1))
+    CONSTRAINT CK_RoomType_coefficient CHECK (coefficient IN (0, 0.5, 1)),
+    CONSTRAINT UC_RoomType_type UNIQUE (type)
 );
 
 CREATE TABLE IF NOT EXISTS RoomType_Flat(
@@ -101,7 +103,7 @@ CREATE TABLE IF NOT EXISTS Tenant(
     lastName VARCHAR(70) NOT NULL,
     email VARCHAR(320) NOT NULL,
     tel VARCHAR(11) NOT NULL,
-    CONSTRAINT UC_Tenant_email UNIQUE (email)
+    CONSTRAINT UC_Tenant_email UNIQUE (email),
     CONSTRAINT UC_Tenant_tel UNIQUE (tel)
 );
 
